@@ -1,0 +1,101 @@
+Ajoutez la propriété label pour les documents ayant la propriété tags uniquement. Label prendra les valeurs suivantes selon le nombre de tags :
+
+si le nombre de tags est strictement supérieur à 1 : A
+
+si le nombre de tags est strictement supérieur à 3 : AA
+
+Et B sinon.
+
+Pour vérifier une taille dans un switch :
+
+{ $size :  "$tags" }
+
+
+db.inventory.updateMany(
+  { tags: { $exists: true } }, // Uniquement ceux qui ont des tags
+  [
+    {
+      $set: {
+        label: {
+          $switch: {
+            branches: [
+              // On commence par le plus précis (AA)
+              { case: { $gt: [{ $size: "$tags" }, 3] }, then: "AA" },
+              // Ensuite le cas intermédiaire (A)
+              { case: { $gt: [{ $size: "$tags" }, 1] }, then: "A" }
+            ],
+            // Sinon on met B
+            default: "B"
+          }
+        }
+      }
+    }
+  ]
+);
+
+J'affiche :
+
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 8,
+  modifiedCount: 8,
+  upsertedCount: 0
+}
+
+
+
+
+db.inventory.find({ tags: { $exists: true } }, { society: 1, tags: 1, label: 1 }).pretty();
+
+Analyse des résultats attendus :
+[
+  {
+    _id: ObjectId("699d8b8f3b2625c2571842c5"),
+    society: 'Alex',
+    tags: [ 'blank', 'blank', 'blank' ],
+    label: 'A'
+  },
+  {
+    _id: ObjectId("699d8b8f3b2625c2571842c6"),
+    society: 'Alan',
+    tags: [ 'blank', 'red', 'blank', 'blank' ],
+    label: 'AA'
+  },
+  {
+    _id: ObjectId("699d8b8f3b2625c2571842c7"),
+    society: 'Albert',
+    tags: [ 'gray' ],
+    label: 'B'
+  },
+  {
+    _id: ObjectId("699d8b8f3b2625c2571842c9"),
+    society: 'Sophie',
+    tags: [ 'gel', 'blue' ],
+    label: 'A'
+  },
+  {
+    _id: ObjectId("699d8b8f3b2625c2571842ca"),
+    society: 'Phil',
+    tags: [ 'gray' ],
+    label: 'B'
+  },
+  {
+    _id: ObjectId("699d8b8f3b2625c2571842cb"),
+    society: 'Nel',
+    tags: [ 'blank', 'blank', 'blank', 'red' ],
+    label: 'AA'
+  },
+  {
+    _id: ObjectId("699d8b8f3b2625c2571842cc"),
+    society: 'Alex',
+    tags: [ 'blank' ],
+    label: 'B'
+  },
+  {
+    _id: ObjectId("699d8b8f3b2625c2571842cd"),
+    society: 'Tony',
+    tags: [ 'blank', 'blank', 'blank', 'red' ],
+    label: 'AA'
+  }
+]
