@@ -1,0 +1,494 @@
+Exercice 1﻿
+Augmentez de 50% la quantité de chaque document qui a un status C ou D.
+use('MaBaseExercice');
+// On multiplie par 1.5 pour augmenter de 50%
+db.inventory.updateMany(
+   { status: { $in: ["C", "D"] } },
+   { $mul: { qty: 1.5 } }
+);
+
+// Cette ligne permet de voir le résultat immédiatement à droite
+db.inventory.find({ status: { $in: ["C", "D"] } });
+
+
+[
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec5c"
+    },
+    "sale": true,
+    "price": 7.99,
+    "society": "Alice",
+    "type": "lux paper",
+    "qty": 150,
+    "size": {
+      "h": 8.5,
+      "w": 11,
+      "uom": "in"
+    },
+    "status": "D",
+    "year": 2020
+  },
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec5d"
+    },
+    "sale": true,
+    "price": 2.99,
+    "society": "Sophie",
+    "type": "planner",
+    "qty": 112.5,
+    "size": {
+      "h": 22.85,
+      "w": 30,
+      "uom": "cm"
+    },
+    "status": "D",
+    "tags": [
+      "gel",
+      "blue"
+    ],
+    "year": 2017
+  },
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec60"
+    },
+    "sale": true,
+    "price": 4.99,
+    "society": "Alex",
+    "type": "journal",
+    "qty": 22.5,
+    "size": {
+      "h": 17,
+      "w": 20,
+      "uom": "cm"
+    },
+    "status": "C",
+    "tags": [
+      "blank"
+    ],
+    "year": 2019
+  }
+]
+
+
+Exercice 2﻿
+Augmentez maintenant de 150% les documents ayant un status A ou B et au moins 2 tags.
+use('MaBaseExercice');
+db.inventory.updateMany(
+   { 
+     status: { $in: ["A", "B"] }, 
+     "tags.1": { $exists: true }  // Vérifie s'il y a un élément à l'index 1 (donc au moins 2 tags)
+   },
+   { $mul: { qty: 2.5 } }
+);
+
+// Vérification
+db.inventory.find({ status: { $in: ["A", "B"] } });
+[
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec59"
+    },
+    "sale": true,
+    "price": 0.99,
+    "society": "Alex",
+    "type": "postcard",
+    "qty": 47.5,
+    "size": {
+      "h": 11,
+      "w": 29,
+      "uom": "cm"
+    },
+    "status": "A",
+    "tags": [
+      "blank",
+      "blank",
+      "blank"
+    ],
+    "year": 2019
+  },
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec5a"
+    },
+    "sale": false,
+    "price": 1.99,
+    "society": "Alan",
+    "type": "journal",
+    "qty": 62.5,
+    "size": {
+      "h": 14,
+      "w": 21,
+      "uom": "cm"
+    },
+    "status": "A",
+    "tags": [
+      "blank",
+      "red",
+      "blank",
+      "blank"
+    ],
+    "year": 2019
+  },
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec5b"
+    },
+    "sale": true,
+    "price": 1.5,
+    "society": "Albert",
+    "type": "notebook",
+    "qty": 50,
+    "size": {
+      "h": 8.5,
+      "w": 11,
+      "uom": "in"
+    },
+    "status": "A",
+    "tags": [
+      "gray"
+    ],
+    "year": 2019
+  },
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec5e"
+    },
+    "sale": false,
+    "price": 0.99,
+    "society": "Phil",
+    "type": "postcard",
+    "qty": 45,
+    "size": {
+      "h": 10,
+      "w": 15.25,
+      "uom": "cm"
+    },
+    "status": "A",
+    "tags": [
+      "gray"
+    ],
+    "year": 2018
+  },
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec5f"
+    },
+    "sale": true,
+    "price": 4.99,
+    "society": "Nel",
+    "type": "journal",
+    "qty": 47.5,
+    "size": {
+      "h": 10,
+      "w": 21,
+      "uom": "cm"
+    },
+    "status": "B",
+    "tags": [
+      "blank",
+      "blank",
+      "blank",
+      "red"
+    ],
+    "year": 2019,
+    "level": 100
+  },
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec61"
+    },
+    "sale": false,
+    "price": 5.99,
+    "society": "Tony",
+    "type": "journal",
+    "qty": 250,
+    "size": {
+      "h": 14,
+      "w": 21,
+      "uom": "cm"
+    },
+    "status": "B",
+    "tags": [
+      "blank",
+      "blank",
+      "blank",
+      "red"
+    ],
+    "year": 2020
+  }
+]
+
+
+
+Exercice 3﻿
+Ajoutez un champ scores de type array avec le score 19 pour les entreprises ayant une qty supérieure ou égale à 75.
+use('MaBaseExercice');
+
+// Étape A : On crée le champ scores pour les grosses quantités
+db.inventory.updateMany(
+  { qty: { $gte: 75 } }, 
+  { $set: { scores: [19] } }
+);
+
+Puis mettre à jour les entreprises ayant au moins une lettre a ou A dans leurs noms de société et ajouter leur un score 11 (champ scores).
+
+// Étape B : On ajoute (push) le score 11 si le nom contient 'a' ou 'A'
+db.inventory.updateMany(
+  { society: { $regex: /a/i } },
+  { $push: { scores: 11 } }
+);
+
+Ajoutez une clé comment pour les sociétés Alex et ajouter un commentaire : "Hello Alex".
+// Étape C : On ajoute le commentaire pour Alex
+db.inventory.updateMany(
+  { society: "Alex" },
+  { $set: { comment: "Hello Alex" } }
+);
+
+// VERIFICATION : On affiche tout pour voir les changements
+db.inventory.find();
+
+[
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec59"
+    },
+    "sale": true,
+    "price": 0.99,
+    "society": "Alex",
+    "type": "postcard",
+    "qty": 47.5,
+    "size": {
+      "h": 11,
+      "w": 29,
+      "uom": "cm"
+    },
+    "status": "A",
+    "tags": [
+      "blank",
+      "blank",
+      "blank"
+    ],
+    "year": 2019,
+    "scores": [
+      11,
+      11
+    ],
+    "comment": "Hello Alex"
+  },
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec5a"
+    },
+    "sale": false,
+    "price": 1.99,
+    "society": "Alan",
+    "type": "journal",
+    "qty": 62.5,
+    "size": {
+      "h": 14,
+      "w": 21,
+      "uom": "cm"
+    },
+    "status": "A",
+    "tags": [
+      "blank",
+      "red",
+      "blank",
+      "blank"
+    ],
+    "year": 2019,
+    "scores": [
+      11,
+      11
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec5b"
+    },
+    "sale": true,
+    "price": 1.5,
+    "society": "Albert",
+    "type": "notebook",
+    "qty": 50,
+    "size": {
+      "h": 8.5,
+      "w": 11,
+      "uom": "in"
+    },
+    "status": "A",
+    "tags": [
+      "gray"
+    ],
+    "year": 2019,
+    "scores": [
+      11,
+      11
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec5c"
+    },
+    "sale": true,
+    "price": 7.99,
+    "society": "Alice",
+    "type": "lux paper",
+    "qty": 150,
+    "size": {
+      "h": 8.5,
+      "w": 11,
+      "uom": "in"
+    },
+    "status": "D",
+    "year": 2020,
+    "scores": [
+      19,
+      11
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec5d"
+    },
+    "sale": true,
+    "price": 2.99,
+    "society": "Sophie",
+    "type": "planner",
+    "qty": 112.5,
+    "size": {
+      "h": 22.85,
+      "w": 30,
+      "uom": "cm"
+    },
+    "status": "D",
+    "tags": [
+      "gel",
+      "blue"
+    ],
+    "year": 2017,
+    "scores": [
+      19
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec5e"
+    },
+    "sale": false,
+    "price": 0.99,
+    "society": "Phil",
+    "type": "postcard",
+    "qty": 45,
+    "size": {
+      "h": 10,
+      "w": 15.25,
+      "uom": "cm"
+    },
+    "status": "A",
+    "tags": [
+      "gray"
+    ],
+    "year": 2018
+  },
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec5f"
+    },
+    "sale": true,
+    "price": 4.99,
+    "society": "Nel",
+    "type": "journal",
+    "qty": 47.5,
+    "size": {
+      "h": 10,
+      "w": 21,
+      "uom": "cm"
+    },
+    "status": "B",
+    "tags": [
+      "blank",
+      "blank",
+      "blank",
+      "red"
+    ],
+    "year": 2019
+  },
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec60"
+    },
+    "sale": true,
+    "price": 4.99,
+    "society": "Alex",
+    "type": "journal",
+    "qty": 22.5,
+    "size": {
+      "h": 17,
+      "w": 20,
+      "uom": "cm"
+    },
+    "status": "C",
+    "tags": [
+      "blank"
+    ],
+    "year": 2019,
+    "scores": [
+      11,
+      11
+    ],
+    "comment": "Hello Alex"
+  },
+  {
+    "_id": {
+      "$oid": "699d6985a6664a4bdeaeec61"
+    },
+    "sale": false,
+    "price": 5.99,
+    "society": "Tony",
+    "type": "journal",
+    "qty": 250,
+    "size": {
+      "h": 14,
+      "w": 21,
+      "uom": "cm"
+    },
+    "status": "B",
+    "tags": [
+      "blank",
+      "blank",
+      "blank",
+      "red"
+    ],
+    "year": 2020,
+    "scores": [
+      19
+    ]
+  }
+]
+
+
+Exercice 4﻿
+Supprimez la propriété level se trouvant dans un/les document(s). Vérifiez qu'il existe au moins un doc qui possède le champ ou la clé level à l'aide d'une requête avant cette action.
+use('MaBaseExercice');
+
+// 1. VÉRIFICATION : On cherche si le champ 'level' existe
+// Le cours précise de vérifier avant d'agir
+db.inventory.find({ level: { $exists: true } });
+
+// 2. SUPPRESSION : On retire le champ 'level' de tous les documents
+// On utilise $unset avec une valeur vide "" comme dans votre cours
+db.inventory.updateMany(
+   {}, 
+   { $unset: { level: "" } }
+);
+
+Vérifiez que le champ level n'existe plus après suppression.
+// 3. VÉRIFICATION FINALE : On vérifie que plus aucun document n'a le champ 'level'
+db.inventory.find({ level: { $exists: true } });
+Tableau vide
+[]
